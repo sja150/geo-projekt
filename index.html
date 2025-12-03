@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEMO-POLSKA 2050 | Analiza Społeczeństwa</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --card-bg: #1f2833;
+            --text-main: #c5c6c7;
+            --accent-cyan: #66fcf1;
+            --accent-dark-cyan: #45a29e;
+            --accent-pink: #e94560;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* --- HEADER & HERO --- */
+        header {
+            padding: 20px;
+            background: rgba(11, 12, 16, 0.9);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--accent-dark-cyan);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 70%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 20px var(--accent-cyan);
+            margin-bottom: 20px;
+        }
+
+        .pulse-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: transparent;
+            border: 3px solid var(--accent-pink);
+            box-shadow: 0 0 20px var(--accent-pink);
+            animation: pulse 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-top: 30px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 30px rgba(233, 69, 96, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(233, 69, 96, 0); }
+        }
+
+        /* --- SECTIONS --- */
+        section {
+            padding: 80px 20px;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: white;
+            border-left: 5px solid var(--accent-cyan);
+            padding-left: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+        }
+
+        /* --- DEMOGRAPHY (PYRAMID) --- */
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type=range] {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+            accent-color: var(--accent-cyan);
+        }
+
+        .year-display {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        /* --- MAP SECTION --- */
+        .map-wrapper {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .map-wrapper { grid-template-columns: 1fr; }
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            background: #121212;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .region {
+            aspect-ratio: 1;
+            background: #333;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            border: 1px solid #444;
+            color: #888;
+        }
+
+        .region:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            border-color: white;
+            color: white;
+        }
+
+        .map-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .btn-group button {
+            background: transparent;
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            transition: 0.3s;
+        }
+
+        .btn-group button:hover, .btn-group button.active {
+            background: var(--accent-cyan);
+            color: black;
+        }
+
+        /* Classes for map coloring logic */
+        .high-density { background-color: rgba(233, 69, 96, 0.8) !important; color: white; box-shadow: 0 0 10px var(--accent-pink); }
+        .med-density { background-color: rgba(233, 69, 96, 0.4) !important; color: white; }
+        .low-density { background-color: rgba(102, 252, 241, 0.2) !important; }
+        
+        .migration-loss { border: 2px dashed var(--accent-pink) !important; color: var(--accent-pink); }
+        .migration-gain { border: 2px solid var(--accent-cyan) !important; background: rgba(102, 252, 241, 0.2); color: var(--accent-cyan); }
+
+        /* --- LABOR MARKET --- */
+        .charts-row {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .chart-box {
+            width: 300px;
+            text-align: center;
+            margin: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            background: black;
+            color: #555;
+            font-size: 0.8rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="font-weight: bold; font-size: 1.2rem; color: var(--accent-cyan);">DEMO-POLSKA 2050</div>
+        <nav>
+            <a href="#demografia" style="color: white; text-decoration: none; margin-left: 15px;">Demografia</a>
+            <a href="#mapa" style="color: white; text-decoration: none; margin-left: 15px;">Mapa</a>
+            <a href="#praca" style="color: white; text-decoration: none; margin-left: 15px;">Praca</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1>Polska Znika?</h1>
+        <p style="font-size: 1.2rem; max-width: 600px;">Interaktywna analiza danych demograficznych, migracji i rynku pracy.</p>
+        <div class="pulse-circle">
+            -130k
+        </div>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #888;">Roczny ubytek naturalny (2022)</p>
+    </div>
+
+    <section id="demografia">
+        <div class="container">
+            <h2 class="section-title">01. Wehikuł Czasu: Piramida Wieku</h2>
+            <div class="card">
+                <p>Przesuń suwak, aby zobaczyć jak starzeje się polskie społeczeństwo. Zwróć uwagę na zmianę kształtu z "choinki" (1990) w "urnę" (2060).</p>
+                
+                <div class="controls">
+                    <span id="yearLabel" class="year-display">1990</span>
+                    <input type="range" id="yearSlider" min="0" max="2" value="0" step="1">
+                    <div style="display: flex; justify-content: space-between; width: 100%; max-width: 400px; font-size: 0.8rem; color: #666;">
+                        <span>1990</span>
+                        <span>2022</span>
+                        <span>2060 (Prognoza)</span>
+                    </div>
+                </div>
+
+                <div style="height: 400px; width: 100%;">
+                    <canvas id="pyramidChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="mapa">
+        <div class="container">
+            <h2 class="section-title">02. Gdzie są ludzie?</h2>
+            <div class="card map-wrapper">
+                
+                <div class="map-grid" id="polandGrid">
+                    <div class="region" data-dens="low" data-mig="loss">Pomorze Zach.</div>
+                    <div class="region" data-dens="med" data-mig="gain">Pomorskie</div>
+                    <div class="region" data-dens="low" data-mig="loss">Warmińsko</div>
+                    <div class="region" data-dens="low" data-mig="loss">Podlaskie</div>
+                    
+                    <div class="region" data-dens="med" data-mig="gain">Lubuskie</div>
+                    <div class="region" data-dens="med" data-mig="gain">Wielkopol.</div>
+                    <div class="region" data-dens="low" data-mig="neutral">Kujawsko</div>
+                    <div class="region" data-dens="high" data-mig="gain">Mazowieckie</div>
+                    
+                    <div class="region" data-dens="high" data-mig="gain">Dolny Śląsk</div>
+                    <div class="region" data-dens="med" data-mig="neutral">Łódzkie</div>
+                    <div class="region" data-dens="med" data-mig="loss">Świętokrzyskie</div>
+                    <div class="region" data-dens="med" data-mig="loss">Lubelskie</div>
+                    
+                    <div class="region" data-dens="med" data-mig="neutral">Opolskie</div>
+                    <div class="region" data-dens="high" data-mig="loss">Śląskie</div>
+                    <div class="region" data-dens="high" data-mig="gain">Małopolskie</div>
+                    <div class="region" data-dens="med" data-mig="loss">Podkarpackie</div>
+                </div>
+
+                <div class="map-info">
+                    <h3>Tryb mapy:</h3>
+                    <div class="btn-group">
+                        <button onclick="setMapMode('density')" class="active" id="btnDens">Gęstość Zaludnienia</button>
+                        <button onclick="setMapMode('migration')" id="btnMig">Saldo Migracji</button>
+                    </div>
+                    <div id="mapDescription" style="margin-top: 20px; line-height: 1.6;">
+                        <strong>Gęstość zaludnienia:</strong> Najwięcej ludzi mieszka na południu (Małopolska, Śląsk) oraz w centrum (Mazowsze). Północny-wschód to "polska pustka".
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="praca">
+        <div class="container">
+            <h2 class="section-title">03. Transformacja Pracy</h2>
+            <div class="card">
+                <p>Od rolnictwa do usług. Zobacz jak zmieniła się struktura zatrudnienia w ciągu zaledwie 25 lat.</p>
+                <div class="charts-row">
+                    <div class="chart-box">
+                        <h3>1990</h3>
+                        <canvas id="chart1990"></canvas>
+                        <p style="margin-top:10px; font-size:0.8rem;">Rolnictwo: 30%</p>
+                    </div>
+                    <div class="chart-box">
+                        <h3>2015+</h3>
+                        <canvas id="chart2015"></canvas>
+                        <p style="margin-top:10px; font-size:0.8rem;">Rolnictwo: ~11%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Projekt edukacyjny na lekcję Geografii. Dane na podstawie GUS.</p>
+    </footer>
+
+    <script>
+        // --- 1. LOGIKA PIRAMIDY WIEKU (CHART.JS) ---
+        const ctxPyramid = document.getElementById('pyramidChart').getContext('2d');
+        
+        // Dane symulowane (uproszczone dla płynności)
+        // Lewa strona (Mężczyźni - wartości ujemne), Prawa (Kobiety - wartości dodatnie)
+        const data1990 = {
+            male: [-5, -6, -7, -8, -8, -7, -6, -5, -4, -3, -2, -1],
+            female: [5, 6, 7, 7, 8, 7, 6, 5, 5, 4, 3, 2],
+            label: "1990 - Wyż demograficzny (Choinka)"
+        };
+        const data2022 = {
+            male: [-3, -4, -5, -6, -8, -9, -8, -6, -5, -4, -3, -2],
+            female: [3, 4, 5, 6, 8, 9, 8, 6, 6, 5, 4, 3],
+            label: "2022 - Starzenie się (Grzyb)"
+        };
+        const data2060 = {
+            male: [-2, -2, -3, -4, -5, -6, -7, -8, -8, -7, -5, -3],
+            female: [2, 2, 3, 4, 5, 6, 7, 8, 9, 8, 6, 4],
+            label: "2060 - Zapaść (Urna)"
+        };
+
+        const ageGroups = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+', '90+', '100+'];
+
+        let pyramidChart = new Chart(ctxPyramid, {
+            type: 'bar',
+            data: {
+                labels: ageGroups,
+                datasets: [
+                    { label: 'Mężczyźni', data: data1990.male, backgroundColor: '#66fcf1' },
+                    { label: 'Kobiety', data: data1990.female, backgroundColor: '#e94560' }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: { stacked: true, min: -10, max: 10, grid: { color: '#333'} },
+                    y: { stacked: true, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { labels: { color: 'white' } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(c) { return Math.abs(c.raw) + "%"; } 
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Obsługa slidera
+        const slider = document.getElementById('yearSlider');
+        const yearLabel = document.getElementById('yearLabel');
+        const datasets = [data1990, data2022, data2060];
+        const years = ["1990", "2022", "2060"];
+
+        slider.addEventListener('input', function() {
+            const index = this.value;
+            yearLabel.innerText = years[index];
+            
+            // Update chart data
+            pyramidChart.data.datasets[0].data = datasets[index].male;
+            pyramidChart.data.datasets[1].data = datasets[index].female;
+            pyramidChart.update();
+        });
+
+
+        // --- 2. LOGIKA MAPY ---
+        function setMapMode(mode) {
+            const regions = document.querySelectorAll('.region');
+            const desc = document.getElementById('mapDescription');
+            
+            document.getElementById('btnDens').classList.remove('active');
+            document.getElementById('btnMig').classList.remove('active');
+
+            regions.forEach(r => {
+                r.className = 'region'; // reset classes
+                if (mode === 'density') {
+                    document.getElementById('btnDens').classList.add('active');
+                    if(r.dataset.dens === 'high') r.classList.add('high-density');
+                    if(r.dataset.dens === 'med') r.classList.add('med-density');
+                    if(r.dataset.dens === 'low') r.classList.add('low-density');
+                    desc.innerHTML = "<strong>Gęstość zaludnienia:</strong> Czerwone pola to obszary gęsto zaludnione (przemysł, duże aglomeracje). Niebieskie to tereny rzadsze (rolnicze, pojezierza).";
+                } else {
+                    document.getElementById('btnMig').classList.add('active');
+                    if(r.dataset.mig === 'gain') r.classList.add('migration-gain');
+                    if(r.dataset.mig === 'loss') r.classList.add('migration-loss');
+                    desc.innerHTML = "<strong>Migracje:</strong> Przerywane linie (różowe) to regiony, z których ludzie uciekają (tzw. drenaż mózgów). Pełne linie (niebieskie) to regiony przyciągające ludzi (duże miasta - suburbanizacja).";
+                }
+            });
+        }
+        // Init map
+        setMapMode('density');
+
+
+        // --- 3. LOGIKA WYKRESÓW KOŁOWYCH ---
+        const configPie = {
+            type: 'doughnut',
+            options: { 
+                plugins: { legend: { display: true, position: 'bottom', labels: { color: 'white'} } },
+                elements: { arc: { borderWidth: 0 } }
+            }
+        };
+
+        // 1990
+        new Chart(document.getElementById('chart1990'), {
+            ...configPie,
+            data: {
+                labels: ['Rolnictwo', 'Przemysł', 'Usługi'],
+                datasets: [{
+                    data: [30, 34, 36],
+                    backgroundColor: ['#4caf50', '#e94560', '#fbc02d']
+                }]
+            }
+        });
+
+        // 2015
+        new Chart(document.getElementById('chart2015'), {
+            ...configPie,
+            data: {
+                labels: ['Rolnictwo', 'Przemysł', 'Usługi'],
+                datasets: [{
+                    data: [11, 30, 59],
+                    backgroundColor: ['#4caf50', '#e94560', '#fbc02d']
+                }]
+            }
+        });
+
+    </script>
+</body>
+</html>
